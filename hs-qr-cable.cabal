@@ -1,0 +1,74 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hs-qr-cable
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/horus/hs-qr-cable#readme>
+homepage:       https://github.com/horus/hs-qr-cable#readme
+bug-reports:    https://github.com/horus/hs-qr-cable/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2023 Author name here
+license:        PublicDomain
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/horus/hs-qr-cable
+
+library
+  exposed-modules:
+      Decode
+      Types
+      Util
+  other-modules:
+      Paths_hs_qr_cable
+  hs-source-dirs:
+      src
+  ghc-options: -O2 -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , cborg
+    , pretty-simple
+    , serialise
+  default-language: Haskell2010
+
+executable hs-qr-cable-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_hs_qr_cable
+  hs-source-dirs:
+      app
+  ghc-options: -O2 -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -O2 -threaded
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , cborg
+    , hs-qr-cable
+    , pretty-simple
+    , serialise
+  default-language: Haskell2010
+
+test-suite hs-qr-cable-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_hs_qr_cable
+  hs-source-dirs:
+      test
+  ghc-options: -O2 -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  build-depends:
+      base >=4.7 && <5
+    , bytestring
+    , cborg
+    , hs-qr-cable
+    , pretty-simple
+    , serialise
+  default-language: Haskell2010
