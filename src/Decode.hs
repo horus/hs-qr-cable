@@ -31,7 +31,7 @@ digitsToBytes digits =
       builder = foldM go mempty chunks
    in fmap toLazyByteString builder
   where
-    go builder chunk = decode chunk >>= \decoded -> pure (builder <> lazyByteString decoded)
+    go builder chunk = (\decoded -> builder <> lazyByteString decoded) <$> decode chunk
 
 decode :: ByteString -> Maybe ByteString
 decode bs = do
