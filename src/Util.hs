@@ -22,8 +22,3 @@ hexdump = toLazyByteString . lazyByteStringHex
 
 hexdump' :: S.ByteString -> L.ByteString
 hexdump' = toLazyByteString . byteStringHex
-
--- -- from either:Data.Either.Combinators
--- maybeToRight :: b -> Maybe a -> Either b a
--- maybeToRight _ (Just x) = Right x
--- maybeToRight y Nothing  = Left y
