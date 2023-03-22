@@ -31,10 +31,10 @@ digitsToBytes digits =
       builder = foldM go mempty chunks
    in fmap toLazyByteString builder
   where
-    go builder chunk = (\decoded -> builder <> lazyByteString decoded) <$> decode chunk
+    go builder chunk = (\decoded -> builder <> lazyByteString decoded) <$> decode10 chunk
 
-decode :: ByteString -> Maybe ByteString
-decode bs = do
+decode10 :: ByteString -> Maybe ByteString
+decode10 bs = do
   (n :: Word64, _) <- first fromIntegral <$> C8.readInteger bs
   let size = remaining $ C8.length bs
   guard $ n `shiftR` (size * 8) == 0

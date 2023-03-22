@@ -1,11 +1,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Types where
 
 import Codec.CBOR.Term
-import Data.ByteString.Lazy (ByteString)
+import Data.ByteString.Lazy qualified as L
 import Util (hexdump')
 
 {--
@@ -19,9 +20,9 @@ data CableRequestType = MakeCredential | DiscoverableMakeCredential | GetAsserti
 
 -- https://source.chromium.org/chromium/chromium/src/+/main:device/fido/cable/v2_handshake.h;drc=0e9a0b6e9bb6ec59521977eec805f5d0bca833e0;bpv=1;bpt=0;l=108
 
-data HandshakeComponents = HandshakeComponents
-  { peerIdentity :: ByteString,
-    secret :: ByteString,
+data Handshake = Handshake
+  { peerIdentity :: L.ByteString,
+    secret :: L.ByteString,
     {--
       // num_known_domains is the number of registered tunnel server domains known
       // to the device showing the QR code. Authenticators can use this to fallback
@@ -45,8 +46,8 @@ data HandshakeComponents = HandshakeComponents
   }
   deriving (Show)
 
-fromTMap :: Term -> Either String HandshakeComponents
-fromTMap (TMap m) = HandshakeComponents <$> p <*> s <*> d <*> t <*> l <*> r
+fromTMap :: Term -> Either String Handshake
+fromTMap (TMap m) = Handshake <$> p <*> s <*> d <*> t <*> l <*> r
   where
     p = look 0 $ \case TBytes bs -> pure $ hexdump' bs
     s = look 1 $ \case TBytes bs -> pure $ hexdump' bs
