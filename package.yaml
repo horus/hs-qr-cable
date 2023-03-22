@@ -20,10 +20,19 @@ description:         Please see the README on GitHub at <https://github.com/horu
 
 dependencies:
 - base >= 4.7 && < 5
+- attoparsec
+- binary
 - bytestring
+- case-insensitive
 - cborg
+- cryptonite
+- http-client
+- http-client-tls
+- memory
+- network
 - pretty-simple
 - serialise
+- websockets
 
 ghc-options:
 - -O2

@@ -6,7 +6,11 @@
 module Types where
 
 import Codec.CBOR.Term
+import Data.Attoparsec.ByteString.Char8 qualified as A
+import Data.ByteString qualified as S
 import Data.ByteString.Lazy qualified as L
+import Data.Maybe (mapMaybe)
+import Data.Word (Word16, Word8)
 import Util (hexdump')
 
 {--
@@ -45,6 +49,28 @@ data Handshake = Handshake
     requestType :: CableRequestType
   }
   deriving (Show)
+
+-- https://source.chromium.org/chromium/chromium/src/+/main:device/fido/cable/v2_handshake.h;drc=cb95e30fa939a18bc0845b57b0946a102b86cf9d;l=82
+
+data Eid = Eid
+  { tunnelServerDomain :: Word16,
+    -- // kRoutingIdSize is the number of bytes of routing information in the BLE advert.
+    --    constexpr size_t kRoutingIdSize = 3;
+    routingId :: [Word8],
+    -- // kNonceSize is the number of bytes of nonce in the BLE advert.
+    --    constexpr size_t kNonceSize = 10;
+    nonce :: [Word8]
+  }
+  deriving (Show)
+
+fromHeader :: S.ByteString -> Maybe Eid
+fromHeader bs
+  | S.length bs == 6 =
+      let w8s = mapMaybe parseHex [S.take 2 bs, S.take 2 (S.drop 2 bs), S.takeEnd 2 bs]
+       in return $ Eid 0 w8s []
+  | otherwise = Nothing
+  where
+    parseHex = either (const Nothing) Just . A.parseOnly A.hexadecimal
 
 fromTMap :: Term -> Either String Handshake
 fromTMap (TMap m) = Handshake <$> p <*> s <*> d <*> t <*> l <*> r
