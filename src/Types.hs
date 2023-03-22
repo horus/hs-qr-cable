@@ -1,6 +1,6 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Types where
@@ -8,10 +8,17 @@ module Types where
 import Codec.CBOR.Term
 import Data.Attoparsec.ByteString.Char8 qualified as A
 import Data.ByteString qualified as S
-import Data.ByteString.Lazy qualified as L
+import Data.ByteString.Builder (byteStringHex, toLazyByteString)
+import Data.ByteString.Lazy.Char8 qualified as C8 (unpack)
 import Data.Maybe (mapMaybe)
 import Data.Word (Word16, Word8)
-import Util (hexdump')
+
+newtype Bytes = Bytes S.ByteString
+
+instance Show Bytes where
+  show (Bytes bs) = hexdump bs
+    where
+      hexdump = C8.unpack . toLazyByteString . byteStringHex
 
 {--
 // CableRequestType enumerates the types of connections that caBLE cares about.
@@ -25,8 +32,8 @@ data CableRequestType = MakeCredential | DiscoverableMakeCredential | GetAsserti
 -- https://source.chromium.org/chromium/chromium/src/+/main:device/fido/cable/v2_handshake.h;drc=0e9a0b6e9bb6ec59521977eec805f5d0bca833e0;bpv=1;bpt=0;l=108
 
 data Handshake = Handshake
-  { peerIdentity :: L.ByteString,
-    secret :: L.ByteString,
+  { peerIdentity :: Bytes,
+    secret :: Bytes,
     {--
       // num_known_domains is the number of registered tunnel server domains known
       // to the device showing the QR code. Authenticators can use this to fallback
@@ -75,8 +82,8 @@ fromHeader bs
 fromTMap :: Term -> Either String Handshake
 fromTMap (TMap m) = Handshake <$> p <*> s <*> d <*> t <*> l <*> r
   where
-    p = look 0 $ \case TBytes bs -> pure $ hexdump' bs
-    s = look 1 $ \case TBytes bs -> pure $ hexdump' bs
+    p = look 0 $ \case TBytes bs -> pure $ Bytes bs
+    s = look 1 $ \case TBytes bs -> pure $ Bytes bs
     d = look 2 $ \case TInt n -> pure n
     t = look 3 $ \case TInt n -> pure n
     l = look 4 $ \case TBool b -> pure b

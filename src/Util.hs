@@ -17,6 +17,7 @@ import Data.List (unfoldr)
 import Data.Maybe (fromMaybe)
 import Data.Word (Word64)
 import Derive (hkdfSha256)
+import Types (Bytes(..))
 
 chunksOf :: Int64 -> L.ByteString -> [L.ByteString]
 chunksOf n = unfoldr split
@@ -28,20 +29,17 @@ chunksOf n = unfoldr split
 hexdump :: L.ByteString -> L.ByteString
 hexdump = toLazyByteString . lazyByteStringHex
 
-hexdump' :: S.ByteString -> L.ByteString
-hexdump' = toLazyByteString . byteStringHex
-
 deriveTunnelId :: S.ByteString -> S.ByteString
 deriveTunnelId secret = hkdfSha256 "" secret "\x02\x00\x00\x00" 16
 
-deriveTunnelURL :: L.ByteString -> L.ByteString -> L.ByteString
-deriveTunnelURL domain secret =
-  let id' = deriveTunnelId $ L.toStrict secret
+deriveTunnelURL' :: L.ByteString -> Bytes -> L.ByteString
+deriveTunnelURL' domain (Bytes secret) =
+  let id' = deriveTunnelId secret
       hEX = C8.map toUpper $ toLazyByteString $ byteStringHex id'
    in "wss://" <> domain <> "/cable/new/" <> hEX
 
-deriveTunnelURL' :: Int -> L.ByteString -> String
-deriveTunnelURL' domain = C8.unpack . deriveTunnelURL (fromMaybe "" (decodeDomain domain))
+deriveTunnelURL :: Int -> Bytes -> String
+deriveTunnelURL domain = C8.unpack . deriveTunnelURL' (fromMaybe "" (decodeDomain domain))
 
 decodeDomain :: Int -> Maybe L.ByteString
 decodeDomain domainId

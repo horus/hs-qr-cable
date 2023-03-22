@@ -50,9 +50,8 @@ main =
     showTunnel s = do
       forM_ [(0, "Google"), (1, "Apple"), (0x03bb, "\x03bb")] $ \(i, provider) -> do
         putStr $ "- " ++ provider ++ ": "
-        let Just domain = decodeDomain i
-        pPrint $ deriveTunnelURL domain s
-      let target = deriveTunnelURL' 0 s
+        pPrint $ deriveTunnelURL i s
+      let target = deriveTunnelURL 0 s
       putStrLn "### Try connecting to a new tunnel via Google"
       headers <- newTunnel target
       putStrLn "#### Phony EID"
