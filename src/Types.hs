@@ -1,18 +1,23 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 module Types where
 
 import Codec.CBOR.Term
+import Control.Monad (replicateM)
 import Data.Attoparsec.ByteString.Char8 qualified as A
+import Data.Binary as Binary (Binary (..), encode)
+import Data.Binary.Get (getWord16le, getWord8)
+import Data.Binary.Put (putWord16le, putWord8)
 import Data.ByteString qualified as S
-import Data.ByteString.Builder (byteStringHex, toLazyByteString, word16LE, word8)
+import Data.ByteString.Builder (byteStringHex, toLazyByteString)
+import Data.ByteString.Lazy qualified as L (toStrict)
 import Data.ByteString.Lazy.Char8 qualified as C8 (unpack)
 import Data.Maybe (mapMaybe)
 import Data.Word (Word16, Word8)
-import qualified Data.ByteString as L
 
 newtype Bytes = Bytes S.ByteString
 
@@ -71,6 +76,16 @@ data Eid = Eid
   }
   deriving (Show)
 
+instance Binary Eid where
+  get = do
+    0 <- getWord8
+    nonce <- replicateM 10 getWord8
+    routingId <- replicateM 3 getWord8
+    tunnelServerDomain <- getWord16le
+    return $ Eid {..}
+  put (Eid tunnelServerDomain routingId nonce) =
+    putWord8 0 >> mapM_ putWord8 (nonce ++ routingId) >> putWord16le tunnelServerDomain
+
 fromHeader :: S.ByteString -> Maybe Eid
 fromHeader bs
   | S.length bs == 6 =
@@ -82,9 +97,7 @@ fromHeader bs
 
 -- TODO: check lengths
 eidToBytes :: Eid -> Bytes
-eidToBytes (Eid tunnelId routingId nonce) =
-  let builder = word8 0 <> foldMap word8 (nonce ++ routingId) <> word16LE tunnelId
-   in Bytes $ L.toStrict $ toLazyByteString builder
+eidToBytes = Bytes . L.toStrict . Binary.encode
 
 fromTMap :: Term -> Either String Handshake
 fromTMap (TMap m) = Handshake <$> p <*> s <*> d <*> t <*> l <*> r
