@@ -8,10 +8,11 @@ module Types where
 import Codec.CBOR.Term
 import Data.Attoparsec.ByteString.Char8 qualified as A
 import Data.ByteString qualified as S
-import Data.ByteString.Builder (byteStringHex, toLazyByteString)
+import Data.ByteString.Builder (byteStringHex, toLazyByteString, word16LE, word8)
 import Data.ByteString.Lazy.Char8 qualified as C8 (unpack)
 import Data.Maybe (mapMaybe)
 import Data.Word (Word16, Word8)
+import qualified Data.ByteString as L
 
 newtype Bytes = Bytes S.ByteString
 
@@ -74,10 +75,16 @@ fromHeader :: S.ByteString -> Maybe Eid
 fromHeader bs
   | S.length bs == 6 =
       let w8s = mapMaybe parseHex [S.take 2 bs, S.take 2 (S.drop 2 bs), S.takeEnd 2 bs]
-       in return $ Eid 0 w8s []
+       in return $ Eid 0 w8s (replicate 10 0) -- default 0
   | otherwise = Nothing
   where
     parseHex = either (const Nothing) Just . A.parseOnly A.hexadecimal
+
+-- TODO: check lengths
+eidToBytes :: Eid -> Bytes
+eidToBytes (Eid tunnelId routingId nonce) =
+  let builder = word8 0 <> foldMap word8 (nonce ++ routingId) <> word16LE tunnelId
+   in Bytes $ L.toStrict $ toLazyByteString builder
 
 fromTMap :: Term -> Either String Handshake
 fromTMap (TMap m) = Handshake <$> p <*> s <*> d <*> t <*> l <*> r
