@@ -56,7 +56,7 @@ encodeRequestHead (RequestHead path headers _) =
     "GET "
       <> byteString path
       <> " HTTP/1.1\r\n"
-      <> mconcat (map pairwise headers)
+      <> foldMap pairwise headers
       <> "\r\n"
   where
     pairwise (k, v) = byteString (CI.original k) <> ": " <> byteString v <> "\r\n"
