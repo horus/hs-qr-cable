@@ -15,7 +15,7 @@ import Data.Char (toUpper)
 import Data.Int (Int64)
 import Data.List (unfoldr)
 import Data.Maybe (fromMaybe)
-import Data.Word (Word64)
+import Data.Word (Word64, Word16)
 import Derive (hkdfSha256)
 import Types (Bytes (..))
 
@@ -62,12 +62,12 @@ decodeDomain' domainId =
    in toLazyByteString $ name <> byteString tld
   where
     templ =
-      byteString (S.dropEnd 3 "caBLEv2 tunnel server domain\0\0\0")
-        <> word8 (fromIntegral $ domainId .&. 0x00ff)
-        <> word8 (fromIntegral $ (domainId .&. 0xff00) `shiftR` 8)
-        --  // The input should be NUL-terminated, thus the trailing NUL in |templ| is
-        --  // included here.
-        <> word8 0
+      let w16 = fromIntegral domainId :: Word16
+       in -- shaInput = append(shaInput, byte(encoded), byte(encoded>>8), 0)
+          "caBLEv2 tunnel server domain"
+            <> word8 (fromIntegral w16)
+            <> word8 (fromIntegral (w16 `unsafeShiftR` 8))
+            <> word8 0
     digest = hashlazy @SHA256 (toLazyByteString templ)
     result =
       let w8s = take 8 $ ByteArray.unpack digest ++ repeat 0
