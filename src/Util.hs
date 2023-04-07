@@ -5,7 +5,7 @@
 module Util where
 
 import Crypto.Hash (SHA256, hashlazy)
-import Data.Bits (Bits (unsafeShiftR), shiftR, unsafeShiftL, (.&.), (.|.))
+import Data.Bits (unsafeShiftL, unsafeShiftR, (.&.), (.|.))
 import Data.ByteArray qualified as ByteArray (unpack)
 import Data.ByteString qualified as S
 import Data.ByteString.Builder
